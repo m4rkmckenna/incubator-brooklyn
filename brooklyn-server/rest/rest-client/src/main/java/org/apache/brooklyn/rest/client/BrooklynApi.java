@@ -18,20 +18,27 @@
  */
 package org.apache.brooklyn.rest.client;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import javax.annotation.Nullable;
-import javax.ws.rs.core.Response;
-
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.gson.Gson;
+import io.swagger.annotations.ApiOperation;
+import org.apache.brooklyn.rest.api.AccessApi;
+import org.apache.brooklyn.rest.api.ActivityApi;
+import org.apache.brooklyn.rest.api.ApplicationApi;
+import org.apache.brooklyn.rest.api.CatalogApi;
+import org.apache.brooklyn.rest.api.EffectorApi;
+import org.apache.brooklyn.rest.api.EntityApi;
+import org.apache.brooklyn.rest.api.EntityConfigApi;
+import org.apache.brooklyn.rest.api.LocationApi;
+import org.apache.brooklyn.rest.api.PolicyApi;
+import org.apache.brooklyn.rest.api.PolicyConfigApi;
+import org.apache.brooklyn.rest.api.ScriptApi;
+import org.apache.brooklyn.rest.api.SensorApi;
+import org.apache.brooklyn.rest.api.ServerApi;
+import org.apache.brooklyn.rest.api.UsageApi;
+import org.apache.brooklyn.rest.api.VersionApi;
+import org.apache.brooklyn.rest.client.util.http.BuiltResponsePreservingError;
+import org.apache.brooklyn.util.exceptions.Exceptions;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -50,27 +57,16 @@ import org.jboss.resteasy.util.GenericType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
+import javax.annotation.Nullable;
+import javax.ws.rs.core.Response;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-import org.apache.brooklyn.rest.api.AccessApi;
-import org.apache.brooklyn.rest.api.ActivityApi;
-import org.apache.brooklyn.rest.api.ApplicationApi;
-import org.apache.brooklyn.rest.api.CatalogApi;
-import org.apache.brooklyn.rest.api.EffectorApi;
-import org.apache.brooklyn.rest.api.EntityApi;
-import org.apache.brooklyn.rest.api.EntityConfigApi;
-import org.apache.brooklyn.rest.api.LocationApi;
-import org.apache.brooklyn.rest.api.PolicyApi;
-import org.apache.brooklyn.rest.api.PolicyConfigApi;
-import org.apache.brooklyn.rest.api.ScriptApi;
-import org.apache.brooklyn.rest.api.SensorApi;
-import org.apache.brooklyn.rest.api.ServerApi;
-import org.apache.brooklyn.rest.api.UsageApi;
-import org.apache.brooklyn.rest.api.VersionApi;
-import org.apache.brooklyn.rest.client.util.http.BuiltResponsePreservingError;
-import org.apache.brooklyn.util.exceptions.Exceptions;
-
-import io.swagger.annotations.ApiOperation;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Adam Lowe
@@ -291,7 +287,7 @@ public class BrooklynApi {
                     LOG.debug("Unable to get class from annotation: {}.  Defaulting to {}", e.getMessage(), def.getName());
                     Exceptions.propagateIfFatal(e);
                 }
-                return type;
+                return (type.equals(Void.class)) ? def : type;
             }
         });
     }
