@@ -61,6 +61,10 @@ import org.apache.brooklyn.util.core.task.Tasks;
 import org.apache.brooklyn.util.exceptions.Exceptions;
 import org.apache.brooklyn.util.guava.Maybe;
 import org.apache.brooklyn.util.text.Strings;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +76,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * A local (single node) implementation of the {@link ManagementContext} API.
  */
+@Component(name = "LocalManagementContext", configurationPid = "org.apache.brooklyn", service = {ManagementContext.class}, immediate = true)
 public class LocalManagementContext extends AbstractManagementContext {
     
     private static final Logger log = LoggerFactory.getLogger(LocalManagementContext.class);
@@ -81,6 +86,26 @@ public class LocalManagementContext extends AbstractManagementContext {
     private final Builder builder;
     
     private final List<ManagementContext.PropertiesReloadListener> reloadListeners = new CopyOnWriteArrayList<ManagementContext.PropertiesReloadListener>();
+
+    private static final String LOG_FORMAT = "\n\n\n" +
+            "########################################\n"+
+            "## Method :: {}\n"+
+            "##\n"+
+            "## Properties :: {}\n"+
+            "########################################\n\n";
+
+    @Activate
+    public void activate(final Map<String, ?> properties){
+        log.error(LOG_FORMAT,"activate",properties);
+    }
+    @Modified
+    public void modified(final Map<String, ?> properties){
+        log.error(LOG_FORMAT,"modified",properties);
+    }
+    @Deactivate
+    public void deactivate(final Map<String, ?> properties){
+        log.error(LOG_FORMAT,"deactivate",properties);
+    }
 
     @VisibleForTesting
     static Set<LocalManagementContext> getInstances() {

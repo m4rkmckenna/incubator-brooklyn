@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.2.0"
+               name="LocalManagementContext"
+               configuration-pid="org.apache.brooklyn"
+               configuration-policy="require"
+               immediate="true"
+               activate="activate" deactivate="deactivate" modified="modified">
+    <implementation class="org.apache.brooklyn.core.mgmt.internal.LocalManagementContext"/>
+    <service>
+        <provide interface="org.apache.brooklyn.api.mgmt.ManagementContext"/>
+    </service>
+</scr:component>
