@@ -17,7 +17,7 @@
  * under the License.
 */
 define([
-    "underscore", "jquery", "backbone", "codemirror",
+    "underscore", "jquery", "backbone", "model/catalog-application", "codemirror",
     "text!tpl/editor/page.html",
 
     // no constructor
@@ -26,7 +26,7 @@ define([
     "jquery-ba-bbq",
     "handlebars",
     "bootstrap"
-], function (_, $, Backbone, CodeMirror, EditorHtml) {
+], function (_, $, Backbone, CatalogApplication, CodeMirror, EditorHtml) {
 
     var EditorView = Backbone.View.extend({
         tagName:"div",
@@ -41,7 +41,14 @@ define([
 
         initialize:function () {
             console.log("initialize");
-
+            var vm = this;
+            this.options.catalog = new CatalogApplication.Collection();
+            this.options.catalog.fetch({
+                data: $.param({allVersions: true}),
+                success: function () {
+                    vm.refreshEditor();
+                }
+            });
             /* this.editor = CodeMirror.fromTextArea(document.getElementById("user"), {
                 lineNumbers: true,
                 extraKeys: {"Ctrl-Space": "autocomplete"},
@@ -63,13 +70,19 @@ define([
             log("this: ", this);
             var cm = this.editor;
             if (typeof(cm) !== "undefined") {
+                var item = this.options.catalog.getId(this.id);
+                if(item){
+                    cm.getDoc().setValue(item['attributes']['planYaml']);
+                }
                 log("CodeMirror", cm);
                 // cm.ensureFocus();
-                cm.setCursor(cm.lineCount(), 0);
+                //cm.setCursor(cm.lineCount(), 0);
                 cm.focus();
                 cm.refresh();
                 // set cursor to End of Document
+
             }
+
         },
         loadEditor: function() {
             log("loadEditor:", this);
@@ -106,6 +119,9 @@ define([
             log("[onSubmissionComplete] succeeded:", succeeded);
             log("[onSubmissionComplete] data:", data);
             var that = this;
+            if(succeeded){
+                Backbone.history.navigate('v1/home' ,{trigger: true});
+            }
         },
         submitApplication:function (event) {
             log("submitApplication");
@@ -116,7 +132,7 @@ define([
                 type:'post',
                 contentType:'application/yaml',
                 processData:false,
-                data: "yaml",
+                data: that.editor.getValue(),
                 success:function (data) {
                     that.onSubmissionComplete(true, data)
                 },

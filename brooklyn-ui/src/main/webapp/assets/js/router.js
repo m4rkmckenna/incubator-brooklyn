@@ -123,7 +123,7 @@ define([
         routes:{
             'v1/home/*trail':'homePage',
             'v1/editor/*trail':'editorPage',
-            'v1/editor':'editorPage',
+            'v1/editor/:id':'editorPage',
             'v1/applications/:app/entities/*trail':'applicationsPage',
             'v1/applications/*trail':'applicationsPage',
             'v1/applications':'applicationsPage',
@@ -180,11 +180,12 @@ define([
                 }
             }, error: render});
         },
-        editorPage: function (trail) {
+        editorPage: function (id) {
             console.log("editorPage");
             var editorView = new EditorView({
                 collection: this.applications,
-                appRouter: this
+                appRouter: this,
+                id: id
             });
             this.showView("#application-content", editorView);
             $(".nav1").removeClass("active");
