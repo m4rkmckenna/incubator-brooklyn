@@ -27,6 +27,7 @@ define([
     "handlebars",
     "bootstrap"
 ], function (_, $, Backbone, CatalogApplication, CodeMirror, EditorHtml) {
+    var _DEFAULT_BLUEPRINT = 'name: Brooklyn App\nlocation: localhost\nservices:\n- type: com.example.Entity';
 
     var EditorView = Backbone.View.extend({
         tagName:"div",
@@ -73,6 +74,8 @@ define([
                 var item = this.options.catalog.getId(this.id);
                 if(item){
                     cm.getDoc().setValue(item['attributes']['planYaml']);
+                }else{
+                    cm.getDoc().setValue(_DEFAULT_BLUEPRINT);
                 }
                 log("CodeMirror", cm);
                 // cm.ensureFocus();
@@ -112,7 +115,7 @@ define([
                 this.submitApplication();
         },
         removeBlueprint: function() {
-            log("removeBlueprint");
+            this.refreshEditor();
 
         },
         onSubmissionComplete: function(succeeded, data) {
@@ -121,7 +124,22 @@ define([
             var that = this;
             if(succeeded){
                 Backbone.history.navigate('v1/home' ,{trigger: true});
+            }else{
+                log("ERROR submitting application: "+data.responseText);
+                var response, summary="Server responded with an error";
+                try {
+                    if (data.responseText) {
+                        response = JSON.parse(data.responseText)
+                        if (response) {
+                            summary = response.message;
+                        }
+                    }
+                } catch (e) {
+                    summary = data.responseText;
+                }
+                that.showFailure(summary);
             }
+            //    that.steps[that.currentStep].view.showFailure(summary)
         },
         submitApplication:function (event) {
             log("submitApplication");
@@ -142,8 +160,15 @@ define([
             });
 
             return false
+        },
+        showFailure: function(text) {
+            if (!text) text = "Failure performing the specified action";
+            log("showing error: "+text);
+            this.$('div.error-message .error-message-text').html(_.escape(text));
+            // flash the error, but make sure it goes away (we do not currently have any other logic for hiding this error message)
+            this.$('div.error-message').slideDown(250).delay(10000).slideUp(500);
         }
-    })
+    });
 
     return EditorView;
-})
+});

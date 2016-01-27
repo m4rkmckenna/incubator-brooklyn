@@ -298,10 +298,7 @@ define([
                     }
                     log("nextStep ... boolYaml: " + yaml);
                     if (yaml) {
-                        // it's a yaml catalog template which includes a location, show the yaml tab
-                        //$("ul#app-add-wizard-create-tab").find("a[href='#yamlTab']").tab('show');
-                        //$("#yaml_code").setCaretToStart();
-                        //navigate to editor
+                        // it's a yaml catalog template which includes a location, show the yaml tab navigate to editor
                         var $modal = $('.add-app #modal-container .modal');
                         $modal.modal('hide');
                         $modal.fadeTo(500,1);
