@@ -17,7 +17,7 @@
  * under the License.
 */
 define([
-    "underscore", "jquery", "backbone", "model/catalog-application", "codemirror",
+    "underscore", "jquery", "backbone", "model/catalog-application", "js-yaml", "codemirror",
     "text!tpl/editor/page.html",
 
     // no constructor
@@ -26,8 +26,10 @@ define([
     "jquery-ba-bbq",
     "handlebars",
     "bootstrap"
-], function (_, $, Backbone, CatalogApplication, CodeMirror, EditorHtml) {
+], function (_, $, Backbone, CatalogApplication, jsYaml, CodeMirror, EditorHtml) {
     var _DEFAULT_BLUEPRINT = 'name: Empty Software Process\nlocation: localhost\nservices:\n- type: org.apache.brooklyn.entity.software.base.EmptySoftwareProcess';
+    var _DEFAULT_CATALOG = 'brooklyn.catalog:\n  version: 0.0.1\n  items:\n  - id: example\n    description: This is an example catalog application\n    ' +
+        'itemType: template\n    item:\n      name: Empty Software Process\n      services:\n      - type: org.apache.brooklyn.entity.software.base.EmptySoftwareProcess';
 
     var EditorView = Backbone.View.extend({
         tagName:"div",
@@ -41,8 +43,8 @@ define([
         editor: null,
 
         initialize:function () {
-            console.log("initialize");
             var vm = this;
+            console.log("initialize" , vm);
             this.options.catalog = new CatalogApplication.Collection();
             this.options.catalog.fetch({
                 data: $.param({allVersions: true}),
@@ -50,15 +52,6 @@ define([
                     vm.refreshEditor();
                 }
             });
-            /* this.editor = CodeMirror.fromTextArea(document.getElementById("user"), {
-                lineNumbers: true,
-                extraKeys: {"Ctrl-Space": "autocomplete"},
-                // TODO: feature request: to allow custom theme: http://codemirror.net/demo/theme.html#base16-light
-                mode: {
-                    name: "yaml",
-                    globalVars: true
-                }
-            }); */
         },
         render:function (eventName) {
             log(document.getElementById("yaml_code"));
@@ -71,19 +64,15 @@ define([
             log("this: ", this);
             var cm = this.editor;
             if (typeof(cm) !== "undefined") {
-                var item = this.options.catalog.getId(this.id);
-                if(item){
-                    cm.getDoc().setValue(item['attributes']['planYaml']);
+                if(this.options.type && this.options.type === 'catalog'){
+                    cm.getDoc().setValue(_DEFAULT_CATALOG);
                 }else{
-                    cm.getDoc().setValue(_DEFAULT_BLUEPRINT);
+                    //assume blueprint
+                    var item = this.options.catalog.getId(this.options.typeId);
+                    cm.getDoc().setValue((item ? item['attributes']['planYaml'] : _DEFAULT_BLUEPRINT ));
                 }
-                log("CodeMirror", cm);
-                // cm.ensureFocus();
-                //cm.setCursor(cm.lineCount(), 0);
                 cm.focus();
                 cm.refresh();
-                // set cursor to End of Document
-
             }
 
         },
@@ -106,24 +95,41 @@ define([
             this.refreshEditor();
         },
         validate: function() {
-            log("validate");
-            return true;
+            var yaml = this.editor.getValue();
+            try{
+                jsYaml.safeLoad(yaml);
+                log('valid yaml :: true');
+                return true;
+            }catch (e){
+                this.showFailure(e.message);
+                log('valid yaml :: false');
+                return false;
+            }
         },
         runBlueprint: function() {
             log("runBlueprint");
-            if (this.validate())
-                this.submitApplication();
+            if (this.validate()){
+                if(this.editor.getValue().slice(0,16) === 'brooklyn.catalog'){
+                    this.submitCatalog();
+                }else{
+                    this.submitApplication();
+                }
+            }
         },
         removeBlueprint: function() {
             this.refreshEditor();
 
         },
-        onSubmissionComplete: function(succeeded, data) {
+        onSubmissionComplete: function(succeeded, data, type) {
             log("[onSubmissionComplete] succeeded:", succeeded);
             log("[onSubmissionComplete] data:", data);
             var that = this;
             if(succeeded){
-                Backbone.history.navigate('v1/home' ,{trigger: true});
+                if(type && type === 'catalog'){
+                    Backbone.history.navigate('v1/catalog' ,{trigger: true});
+                }else{
+                    Backbone.history.navigate('v1/home' ,{trigger: true});
+                }
             }else{
                 log("ERROR submitting application: "+data.responseText);
                 var response, summary="Server responded with an error";
@@ -139,12 +145,10 @@ define([
                 }
                 that.showFailure(summary);
             }
-            //    that.steps[that.currentStep].view.showFailure(summary)
         },
-        submitApplication:function (event) {
+        submitApplication: function () {
             log("submitApplication");
             var that = this
-
             $.ajax({
                 url:'/v1/applications',
                 type:'post',
@@ -152,13 +156,31 @@ define([
                 processData:false,
                 data: that.editor.getValue(),
                 success:function (data) {
-                    that.onSubmissionComplete(true, data)
+                    that.onSubmissionComplete(true, data);
                 },
                 error:function (data) {
-                    that.onSubmissionComplete(false, data)
+                    that.onSubmissionComplete(false, data);
                 }
             });
 
+            return false
+        },
+        submitCatalog: function () {
+            log("submitCatalog");
+            var that = this;
+            $.ajax({
+                url:'/v1/catalog',
+                type:'post',
+                contentType:'application/yaml',
+                processData:false,
+                data: that.editor.getValue(),
+                success:function (data) {
+                    that.onSubmissionComplete(true, data, 'catalog')
+                },
+                error:function (data) {
+                    that.onSubmissionComplete(false, data, 'catalog')
+                }
+            });
             return false
         },
         showFailure: function(text) {

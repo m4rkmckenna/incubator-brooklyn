@@ -299,10 +299,7 @@ define([
                     log("nextStep ... boolYaml: " + yaml);
                     if (yaml) {
                         // it's a yaml catalog template which includes a location, show the yaml tab navigate to editor
-                        var $modal = $('.add-app #modal-container .modal');
-                        $modal.modal('hide');
-                        $modal.fadeTo(500,1);
-                        Backbone.history.navigate("/v1/editor/"+ (catalogId ? catalogId : '') ,{trigger: true});
+                        this.currentView.redirectToEditorTab(this.currentView.selectedTemplate.id);
                     } else {
                         // it's a java catalog template or yaml template without a location, go to wizard
                         this.currentStep += 1;
@@ -451,7 +448,7 @@ define([
             var $modal = $('.add-app #modal-container .modal');
             $modal.modal('hide');
             $modal.fadeTo(500,1);
-            Backbone.history.navigate("/v1/editor/"+ (catalogId ? catalogId : '') ,{trigger: true});
+            Backbone.history.navigate("/v1/editor/app/"+ (typeof catalogId === 'string' ? catalogId : '') ,{trigger: true});
         },
         applyFilter: function(e) {
             var filter = $(e.currentTarget).val().toLowerCase()

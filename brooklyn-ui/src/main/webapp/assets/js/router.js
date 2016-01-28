@@ -122,8 +122,8 @@ define([
     var Router = Backbone.Router.extend({
         routes:{
             'v1/home/*trail':'homePage',
-            'v1/editor/*trail':'editorPage',
-            'v1/editor/:id':'editorPage',
+            //'v1/editor/*trail':'editorPage',
+            'v1/editor(/)(:type)(/)(:typeId)':'editorPage',
             'v1/applications/:app/entities/*trail':'applicationsPage',
             'v1/applications/*trail':'applicationsPage',
             'v1/applications':'applicationsPage',
@@ -180,12 +180,13 @@ define([
                 }
             }, error: render});
         },
-        editorPage: function (id) {
-            console.log("editorPage");
+        editorPage: function (type, typeId) {
+            console.log("editorPage", type, typeId);
             var editorView = new EditorView({
                 collection: this.applications,
                 appRouter: this,
-                id: id
+                type: type,
+                typeId: typeId
             });
             this.showView("#application-content", editorView);
             $(".nav1").removeClass("active");
