@@ -27,7 +27,7 @@ define([
     "handlebars",
     "bootstrap"
 ], function (_, $, Backbone, CatalogApplication, CodeMirror, EditorHtml) {
-    var _DEFAULT_BLUEPRINT = 'name: Brooklyn App\nlocation: localhost\nservices:\n- type: com.example.Entity';
+    var _DEFAULT_BLUEPRINT = 'name: Empty Software Process\nlocation: localhost\nservices:\n- type: org.apache.brooklyn.entity.software.base.EmptySoftwareProcess';
 
     var EditorView = Backbone.View.extend({
         tagName:"div",
