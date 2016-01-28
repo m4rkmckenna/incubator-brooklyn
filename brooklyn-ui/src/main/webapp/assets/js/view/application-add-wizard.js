@@ -302,7 +302,7 @@ define([
                         var $modal = $('.add-app #modal-container .modal');
                         $modal.modal('hide');
                         $modal.fadeTo(500,1);
-                        Backbone.history.navigate("/v1/editor/"+ this.currentView.selectedTemplate.id ,{trigger: true});
+                        Backbone.history.navigate("/v1/editor/"+ (catalogId ? catalogId : '') ,{trigger: true});
                     } else {
                         // it's a java catalog template or yaml template without a location, go to wizard
                         this.currentStep += 1;
@@ -357,7 +357,7 @@ define([
             'paste #yaml_code':'onYamlCodeChange',
             'shown a[data-toggle="tab"]':'onTabChange',
             'click #templateTab #catalog-add':'switchToCatalogAdd',
-            'click #templateTab #catalog-yaml':'showYamlTab'
+            'click #templateTab #catalog-yaml':'redirectToEditorTab'
         },
         template:_.template(CreateHtml),
         wizard: null,
@@ -446,6 +446,12 @@ define([
         showYamlTab: function() {
             $("ul#app-add-wizard-create-tab").find("a[href='#yamlTab']").tab('show');
             $("#yaml_code").focus();
+        },
+        redirectToEditorTab: function(catalogId){
+            var $modal = $('.add-app #modal-container .modal');
+            $modal.modal('hide');
+            $modal.fadeTo(500,1);
+            Backbone.history.navigate("/v1/editor/"+ (catalogId ? catalogId : '') ,{trigger: true});
         },
         applyFilter: function(e) {
             var filter = $(e.currentTarget).val().toLowerCase()
